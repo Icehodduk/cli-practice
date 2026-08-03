@@ -1,0 +1,253 @@
+// -*- coding: utf-8 -*-
+// YES24 EDA 보고서 - 노르딕 미니멀리즘(Nordic Minimalism) PPTX 생성 스크립트
+// PptxGenJS 사용. 스킬 레퍼런스 styles.md §10 스펙 엄격 준수:
+//   배경 #F4F1EC, 오가닉 블롭 #D9CFC4, 텍스트 #3D3530/#8A7A6A,
+//   40%+ 여백, 3-dot 액센트, 얇은 수평 구분선, 세리프 제목
+const pptxgen = require("pptxgenjs");
+const path = require("path");
+
+const pres = new pptxgen();
+pres.layout = "LAYOUT_WIDE"; // 13.3" x 7.5"
+pres.author = "데이터 분석가";
+pres.title = "YES24 도서 데이터 EDA";
+
+// ── 노르딕 미니멀리즘 디자인 토큰 ──
+const C = {
+  BG:      "F4F1EC",  // 따뜻한 크림
+  BLOB:    "D9CFC4",  // 오가닉 블롭 웜 그레이
+  TEXT:    "3D3530",  // 다크 웜 브라운 (본문)
+  MUTED:   "8A7A6A",  // 토프 (보조 텍스트)
+  ACCENT:  "3D3530",  // 딥 브라운 (액센트 도트)
+  WHITE:   "FFFFFF",
+  LINE:    "C4B8AA",  // 얇은 수평선 색상
+  CARD:    "FFFFFF",  // 카드 배경
+  DIVIDER: "3D3530",  // 간지 배경
+};
+
+// 사용자 지정 폰트 (제목: G마켓 산스 Bold, 본문: 나눔고딕)
+const F_TITLE = "Gmarket Sans Bold";
+const F_BODY  = "NanumGothic";
+
+// 이미지 경로 (절대 경로)
+const IMG = (name) => path.resolve(__dirname, "..", "images", name);
+
+// ── 시그니처 요소 헬퍼 ──
+
+// 3-dot 액센트 (좌측 상단에 3개 원형 도트 배치)
+function addDots(slide) {
+  const dots = [
+    { x: 0.6, y: 0.45, color: C.TEXT },
+    { x: 0.82, y: 0.45, color: C.MUTED },
+    { x: 1.04, y: 0.45, color: C.BLOB },
+  ];
+  dots.forEach(d => {
+    slide.addShape(pres.shapes.OVAL, {
+      x: d.x, y: d.y, w: 0.12, h: 0.12,
+      fill: { color: d.color }
+    });
+  });
+}
+
+// 하단 얇은 수평 구분선 + 캡션
+function addFooter(slide, caption) {
+  slide.addShape(pres.shapes.LINE, {
+    x: 0.7, y: 6.7, w: 11.9, h: 0,
+    line: { color: C.LINE, width: 0.5 }
+  });
+  if (caption) {
+    slide.addText(caption, {
+      x: 0.7, y: 6.8, w: 11.9, h: 0.4,
+      fontFace: F_BODY, fontSize: 9, color: C.MUTED,
+      charSpacing: 4, margin: 0
+    });
+  }
+}
+
+// 오가닉 블롭 배경 (큰 타원 — 낮은 불투명도)
+function addBlob(slide, x, y, w, h) {
+  slide.addShape(pres.shapes.OVAL, {
+    x: x, y: y, w: w, h: h,
+    fill: { color: C.BLOB, transparency: 60 }
+  });
+}
+
+// ── 슬라이드 데이터 정의 (32장) ──
+const slides = [
+  // 1. 표지
+  { type: "cover", title: "YES24 도서 데이터\n탐색적 데이터 분석", subtitle: "데이터로 파악하는 최신 IT 도서 시장 트렌드 및 요약 대시보드", meta: "발표자: 전문 데이터 분석가  ·  2026. 07. 15", notes: "안녕하십니까, 오늘 발표를 맡은 전문 데이터 분석가입니다. 오늘 제가 소개해드릴 프로젝트는 국내 최고의 도서 유통 채널인 YES24의 IT 전문 도서 데이터 1,200건을 대상으로 진행한 탐색적 데이터 분석, 즉 EDA 결과 보고입니다. 현대 IT 산업과 기술 생태계는 눈부시게 빠른 속도로 변화하고 있습니다. 새로운 프로그래밍 언어, 새로운 인공지능 프레임워크가 매달 쏟아져 나오는 현 상황 속에서 출판업계나 IT 교육 마케팅 조직이 과거의 직관과 경험에만 의존해 경영 의사결정을 내리는 것은 대단히 위험한 선택입니다. 본 분석에서는 가격 정책의 실효성, 도서정가제 하의 할인율 분포, 인기도 지표의 극심한 양극화 현상, 그리고 최근 생성형 AI 열풍으로 대표되는 키워드 변동 흐름을 명확한 시각적 차트와 통계 수치로 보여드릴 것입니다. 아울러 이러한 통계적 분석 성과가 실제 기획과 매출 확대로 이어질 수 있도록, 실무 중심의 구체적인 3대 비즈니스 액션 플랜을 제시하고자 합니다." },
+  // 2. 목차
+  { type: "toc", title: "Contents", sections: [ { num: "I", name: "프로젝트 개요 및 데이터 프로파일링", desc: "분석 배경, 수집 데이터 구조 및 데이터 정제 결과 검증" }, { num: "II", name: "핵심 시각화 및 비즈니스 인사이트", desc: "10대 주요 그래프 분석과 TF-IDF 키워드 도출" }, { num: "III", name: "종합 결론 및 비즈니스 제언", desc: "IT 도서 시장 점유율 확대를 위한 3대 핵심 액션 플랜" } ], notes: "오늘 프레젠테이션은 총 세 개의 메이저 세션으로 나누어 진행할 예정입니다. 첫 번째 세션에서는 본 데이터 분석 프로젝트를 수행하게 된 전략적 배경과 수집된 데이터의 열 구조, 그리고 통계 분석의 기초인 데이터의 정합성과 완결성을 입증하기 위해 거친 프로파일링 결과를 브리핑하겠습니다. 두 번째 세션에서는 본 분석의 가장 핵심적인 알맹이인 10가지 시각화 그래프를 심층적으로 뜯어볼 것입니다. 변수 각각의 단일 분포부터 시작하여, 가격과 인기도의 연관 관계, 독자 리뷰수와 판매지수의 상관 분석, 그리고 사이킷런을 활용한 텍스트 마이닝 키워드 가중치를 설명해 드리고자 합니다. 마지막 세 번째 세션에서는 데이터 탐색을 통해 도출한 가치를 실제 매출 성장과 브랜드 강화로 전환시킬 수 있도록 3가지 핵심 제언으로 결론을 맺겠습니다." },
+  // 3. 세션 I 간지
+  { type: "divider", label: "SECTION I", title: "프로젝트 개요 및\n데이터 프로파일링", notes: "첫 번째 대주제인 프로젝트 개요 및 데이터 프로파일링 파트입니다. 많은 조직이 데이터 분석을 할 때, 로우 데이터를 그냥 불러와서 바로 시각화부터 돌려버리는 실수를 하곤 합니다. 하지만 원천 데이터에 채워지지 않은 결측치가 얼마나 있는지, 유령 회원이나 중복된 트랜잭션이 몇 개나 끼어있는지 미리 알지 못한다면 왜곡된 요약 수치를 받아들게 됩니다. 따라서 이번 장에서는 수집 대상 IT 도서 데이터셋의 크기와 결측치의 통계, 그리고 중복 데이터 검증 과정을 통해 분석을 전개할 기반이 완벽하게 안전하고 평평하다는 것을 증명해 보이겠습니다." },
+  // 4. 분석 목표
+  { type: "cards3", title: "프로젝트 분석 목표", cards: [ { head: "독자 반응 연관 분석", body: "도서 가격 정책, 할인율, 리뷰 수 및 판매지수 간의 연관관계를 수치적으로 규명합니다." }, { head: "공급 트렌드 파악", body: "연도별 도서 공급 건수 추이와 메이저 출판사 및 다작 저자 중심의 과점 현상을 파악합니다." }, { head: "텍스트 트렌드 도출", body: "도서 제목과 설명에 사용된 단어를 TF-IDF 수학 모델로 계량화해 핵심 기술 유행을 분석합니다." } ], notes: "프로젝트의 분석 목표에 대해 말씀드리겠습니다. 본 탐색적 분석의 핵심 지향점은 세 가지로 나누어집니다. 첫째, 도서의 가격과 할인율이라는 공급자 측면의 가격 설정이 소비자의 즉각적인 액션인 리뷰 개수와 판매지수에 어떤 관계를 가지는지 통계적으로 입증하는 것입니다. 둘째, 시간의 흐름에 따른 신간 도서의 발행 건수를 시계열적으로 추적하고, 국내 IT 출판 시장을 지탱하고 있는 7대 출판사와 스타 필진들의 생태계 점유율을 정량화하여 과점 실태를 파악하는 것입니다. 셋째, 사이킷런 라이브러리를 사용해 문맥 속 핵심 단어들의 가중치를 TF-IDF 모델로 연산하여 최신 IT 도서 시장을 완전히 지배하고 있는 핵심 신기술 트렌드를 계량적으로 가시화하는 것이 궁극적인 목표입니다." },
+  // 5. 데이터셋 구조
+  { type: "bignum", title: "데이터셋 구조 및 수집 현황", nums: [ { val: "1,200", label: "수집 행 (Rows)" }, { val: "11", label: "원천 컬럼" }, { val: "+3", label: "파생 변수" } ], body: "YES24 온라인 서점에 등록된 IT 전문 서적 1,200건을 완벽 수집하였으며, 할인율 · 발행연도 · 발행월 파생변수를 추가로 엔지니어링했습니다.", notes: "저희가 수집한 데이터셋의 구체적인 레이아웃과 수집 현황입니다. 데이터셋은 YES24 온라인 서점에 등록된 IT 도서 카테고리 중 대표적인 베스트셀러 및 스테디셀러 목록 1,200개의 레코드를 추출하여 구성했습니다. 컬럼은 도서 제목, 저자, 출판사, 발행일, 정가, 판매가, 리뷰 수, 판매지수, 설명, 상세 정보, URL 등 총 11가지의 원천 변수들을 수집했습니다. 특히, 정밀 분석을 위해 원천 데이터에만 머무르지 않고, 정가 대비 판매가를 수학적으로 산출한 '할인율' 파생변수를 공식으로 산출해냈으며, 날짜 텍스트 슬라이싱을 통해 '발행연도'와 '발행월'이라는 3가지 파생변수를 추가로 엔지니어링하여 분석의 차원을 넓혔습니다." },
+  // 6. 결측치·중복
+  { type: "cards3", title: "결측치 및 중복 데이터 정제 결과", cards: [ { head: "핵심 수치 완결성 100%", body: "정가, 판매가, 판매지수, 리뷰 수 등 핵심 통계 변수의 결측치는 0건으로 완벽한 완결성을 보입니다." }, { head: "일부 메타정보 결측", body: "저자(2건), 설명(28건), 상세 정보(439건)에서 결측이 관찰되며 이는 업계 관행입니다." }, { head: "중복 레코드 0건", body: "수집 단계부터 디듀플리케이션 알고리즘을 적용하여 1,200행 모두 순수 유니크 레코드입니다." } ], notes: "데이터 정제와 신뢰도 검증 결과에 대해 설명해 드리겠습니다. 데이터 적재 후 빈 값인 결측치를 정밀 검사한 결과, 다행히도 분석의 가장 중심축이 되는 제목, 출판사, 정가, 판매가, 리뷰 수, 판매지수 등의 숫자 기반 변수에서는 결측치가 단 1건도 없는 100%의 무결성을 나타냈습니다. 다만 텍스트 메타데이터 영역인 저자 명에서 2건, 책 요약 설명에서 28건의 빈 값이 관찰되었습니다. 특히 도서의 상세 목차가 포함되는 상세 정보 컬럼은 439건의 비교적 높은 결측을 보였습니다. 중복 데이터 역시 엄격히 검사했으나, 완벽한 필터링을 거쳤기에 중복 레코드는 0건으로 보장합니다." },
+  // 7. 세션 II 간지
+  { type: "divider", label: "SECTION II", title: "핵심 시각화 및\n비즈니스 인사이트", notes: "두 번째 세션인 핵심 시각화 및 비즈니스 인사이트 파트입니다. 이 세션은 본 프레젠테이션의 가장 강력한 비주얼 영역으로, 총 10가지 시각화 차트와 그에 부합하는 분석가의 해설이 준비되어 있습니다. 그래프의 왜곡을 방지하기 위해 임의의 3D 입체 효과나 과장된 그라데이션을 철저히 배제하고, 데이터를 평면상에 객관적으로 가시화하는 플랫 디자인의 2D 그래프를 제작했습니다." },
+  // 8~27: 차트+인사이트 10쌍
+  { type: "chart", title: "도서 정가 및 판매가 가격 분포", image: "01_price_distribution.png", desc: "IT 전문 도서의 정가 및 판매가의 가격 구간별 빈도 히스토그램입니다.\n대부분의 기술 서적이 1.5만 원에서 3만 원 사이에 쏠려 있습니다.", notes: "오른쪽에 보이시는 히스토그램 차트는 YES24 IT 카테고리 도서들의 정가 분포와 실재 할인 적용된 판매가 분포를 함께 비교하여 보여줍니다. 두 그래프의 면적이 겹쳐져 있는 구간을 살펴보시면, 대다수의 도서들이 15,000원에서 30,000원 선에 집중적으로 모여 있는 단일 봉우리 형태의 히스토그램을 확인할 수 있습니다. 평균 정가는 23,799원이며 실제 고객이 결제하는 판매가 평균은 21,985원입니다. 중앙값 역시 정가 23,000원, 판매가 21,000원으로 평균치와 매우 밀접하게 닿아 있습니다. 4만 원 이상으로 꼬리가 길게 뻗어나가는 극소수 고가 서적들은 대학 학부 전공 교재나 전문 아카데믹 번역 서적들입니다." },
+  { type: "split", title: "가격 포지셔닝 및 저항선 극복 방안", left: "도서 정가와 판매가는 1.5만 원 ~ 3만 원 사이에 압도적으로 분포해 있습니다. 이는 독자층이 가격 저항감을 가장 덜 느끼는 최적 가격대(Sweet Spot)임을 증명합니다.", items: [ { label: "가격 스윗 스팟", val: "20,000원 ~ 24,000원" }, { label: "고가 프리미엄 존", val: "40,000원 초과 전문서" }, { label: "기획 지향성", val: "심리적 저항선을 고려한 정가 책정" } ], notes: "도서 가격 분포 분석이 주는 출판 기획 부서의 인사이트입니다. IT 서적 구매자들은 학생부터 현업 주니어 개발자까지 매우 다양한 경제적 계층으로 구성됩니다. 이들이 책 한 권을 살 때 '이 정도면 부담 없이 내 지식을 위해 투자할 수 있다'고 느끼는 마지노선이 바로 2만 원대 초반입니다. 따라서 신진 필진이나 대중적인 입문 기술서를 기획할 때는 반드시 정가를 24,000원 이하로 책정하여 초기 시장 진입 허들을 낮춰야 합니다. 반면, 4만 원을 호가하는 초고가 서적들은 가격 탄력성이 아주 낮습니다." },
+  { type: "chart", title: "도서 할인율 구간별 빈도 분포", image: "02_discount_rate_distribution.png", desc: "파생변수로 산출된 도서 할인율의 빈도 히스토그램입니다.\n법이 허용하는 최대치인 10% 영역에 압도적으로 많은 데이터가 집중되어 있습니다.", notes: "우측의 차트는 도서 할인율의 분포를 시각화한 것입니다. 우리나라는 출판 시장 상생과 동반 성장을 위해 법률로써 1년에 최대 10%의 가격 할인만을 허용하는 도서정가제를 엄격히 고수하고 있습니다. 이 법적 장벽의 위세가 데이터에 고스란히 반영되어, 할인율 10% 지점에 빌딩처럼 높은 막대그래프가 솟아있는 것을 확인하실 수 있습니다. 평균 할인율은 7.02%이며, 중앙값은 정확히 10.0%입니다." },
+  { type: "cards3", title: "법적 할인율 규제에 따른 비가격 마케팅", cards: [ { head: "할인 변별력 상실", body: "대다수의 IT 단행본이 10% 할인을 상수로 적용하고 있어 판매가 기준의 경쟁은 의미가 없습니다." }, { head: "할인율 0% 서적 존재", body: "학술 전공서나 대학 교재는 약 25% 비율로 무할인 정가제 유통을 고수하며 마진을 보전합니다." }, { head: "비가격 혜택 다양화", body: "사은품 부록, 독점 예제 코드, 온라인 강의 결합 등 부가 혜택으로 승부해야 합니다." } ], notes: "도서정가제로 인해 모든 도서가 동일한 10% 할인을 취함에 따라, 소비자 관점에서는 어느 서점이나 어느 출판사의 책을 고르더라도 가격 메리트 측면에서의 변별력은 완전히 상실된 상태입니다. 따라서 마케터들이 상세페이지에서 '저렴한 판매가'를 무기로 내세우는 영업 방식은 비효율적입니다. 독자가 우리 책을 사게 만들려면 가격 할인이 아닌 비가격 혜택의 다각화가 유일한 해결책입니다." },
+  { type: "chart", title: "도서 판매지수의 롱테일 분포", image: "03_sales_index_distribution.png", desc: "인기도 척도인 판매지수의 왜도를 보여주는 분포 차트입니다.\n대다수 도서는 매우 낮은 지수이나 극소수가 극단적인 아웃라이어를 만듭니다.", notes: "우측에 표시된 차트는 도서 판매지수의 극단적인 분포 왜곡을 가시화하고 있습니다. 판매지수의 평균값은 1,647점으로 집계되지만, 중앙값은 겨우 487점에 머물고 있습니다. 상위 75% 분위수마저 1,344점에 그쳐, 대부분의 평범한 IT 기술서들은 낮은 스코어 영역에 밀집되어 있습니다. 반면, 최댓값은 무려 87,927점에 달합니다." },
+  { type: "split", title: "도서 시장 인기도 양극화 극복 전략", left: "판매지수의 통계 중앙값(487)과 최댓값(87,927)의 극심한 격차는, 전형적인 파레토 법칙(80대 20)을 대변합니다. 소수의 킬러 도서 육성에 리소스를 집중해야 생존이 가능합니다.", items: [ { label: "중앙값 vs 최댓값", val: "487.5 점 vs 87,927.0 점" }, { label: "파레토 쏠림 비중", val: "상위 5% 도서가 총인기도 점유" }, { label: "마케팅 자원 배분", val: "선택과 집중을 통한 메가 스타 도서 기획" } ], notes: "판매지수 양극화 분석이 주는 마케팅 예산 집행 부서의 인사이트입니다. 한정된 마케팅 재원을 확실한 대중성과 최신 트렌드를 갖춘 소수의 '킬러 타이틀' 후보군에 약 70% 이상 집중적으로 몰아주어야 합니다." },
+  { type: "chart", title: "독자 평판 지표인 리뷰 수 분포", image: "04_review_count_distribution.png", desc: "온라인 서점 도서 상세페이지에 누적된 리뷰 수의 빈도 분포도입니다.\n구매에 비해 적극적으로 평판을 남기는 독자의 비율이 현저히 낮습니다.", notes: "우측 차트는 도서별 리뷰 수의 분포를 보여줍니다. 평균 리뷰 개수는 약 11.6개이지만, 중앙값은 단 4개에 불과합니다. 전체의 절반이 넘는 도서들이 누적 리뷰 건수가 4개 미만인 무평판의 늪에 빠져 있습니다. 반면 최댓값은 205개에 달해 평판의 양극화가 뚜렷합니다." },
+  { type: "cards3", title: "평판 인프라 확보를 위한 능동적 피드백 루프", cards: [ { head: "자발적 리뷰의 한계", body: "독자들의 리뷰 작성률은 지극히 낮으며, 중앙값 4개가 보여주듯 인위적인 장치 없이는 평판 구축이 불가능합니다." }, { head: "사회적 증거의 결핍", body: "리뷰가 없는 상세페이지는 구매 전환율이 현격하게 떨어지는 주원인이므로 초반 방어벽 형성이 필수적입니다." }, { head: "리워드 마케팅 공식화", body: "기술 서평단 운영, 기프티콘 지급, 우수 피드백 보상 등 능동적 리워드로 리뷰 수를 펌핑해야 합니다." } ], notes: "리뷰수 분포 결과는 초기 평판 관리인 '사회적 증거' 확보에 마케팅 예산을 의무적으로 배정해야 함을 증명합니다. 출판사는 신간 론칭 전 최소 20명 이상의 베타리더를 선제 모집하여 출간일 당일에 일제히 리뷰가 기재되도록 설계해야 합니다." },
+  { type: "chart", title: "연도별 도서 신간 발행 건수 추이", image: "05_yearly_publish_trend.png", desc: "수집된 1,200권의 연도별 발행량 막대 차트입니다.\n2024년 이후 최근 3개년에 신간의 약 80% 이상이 집중되어 있습니다.", notes: "오른쪽에 있는 시계열 막대그래프는 연도별 도서 신간 발행 건수의 점유율 추이를 보여줍니다. 2024년 이전의 모든 연도별 발행량을 전부 더해봤자 192권(16%)에 불과합니다. 반면 2024년 170권(14%), 2025년 403권(33%), 2026년 405권(33.8%)을 기록하고 있습니다." },
+  { type: "split", title: "정보기술 수명 단축에 따른 애자일 기획", left: "최근 3개년의 신간 발행량이 80% 이상을 차지하는 현상은, IT 기술 지식의 교체 주기가 극단적으로 압축되었음을 대변합니다.", items: [ { label: "최근 3개년 발행 비중", val: "81.6% (978 / 1,200권)" }, { label: "지식 수명 반감기", val: "약 1년 ~ 1.5년 수준" }, { label: "대응 기획 모델", val: "6개월 단위 초고속 개정 프로세스" } ], notes: "연도별 발행 추이가 시사하는 출판 기획본부의 지휘 방향성입니다. IT 실무서는 프레임워크나 개발 언어의 버전이 올라가는 순간, 구버전 책의 판매지수는 0으로 수렴합니다. 기획 부서는 고속 순환 기획(Agile Publishing) 모델로 체질을 개선해야 합니다." },
+  { type: "chart", title: "도서 가격과 판매지수 간의 상관관계", image: "06_price_vs_sales_index.png", desc: "판매 가격(X축)과 판매지수(Y축)의 연관 관계를 분석한 산점도입니다.\n상관계수는 0.035로 선형 관계가 전혀 관찰되지 않습니다.", notes: "우측 산점도 그래프에서 피어슨 상관계수(R)는 0.0352로 0에 수렴하며, 결정계수인 R스퀘어는 0.0012에 불과합니다. 이는 가격이 비싸면 안 팔릴 것이라는 통념과 달리, 실제 IT 서적 구매 의사결정에서 가격의 높고 낮음은 베스트셀러 진입에 아무런 영향을 주지 못한다는 명확한 사실을 의미합니다." },
+  { type: "cards3", title: "가격 장벽을 초월하는 기술 콘텐츠 파워", cards: [ { head: "가격 탄력성의 한계", body: "상관계수 0.03이 입증하듯, 소비자는 가격보다는 콘텐츠의 신뢰도와 실무 적용성에 반응합니다." }, { head: "저단가 출혈 경쟁 지양", body: "지면을 억지로 줄여 단가를 2,000원 낮추는 정책은 마진을 훼손할 뿐 매출 증대에 기여하지 않습니다." }, { head: "프리미엄 프라이싱 수립", body: "책의 볼륨과 소스코드 퀄리티를 최상으로 보장하여 단가를 높게 책정하는 것이 고수익에 유리합니다." } ], notes: "가격과 판매지수의 통계적 독립성이 입증하는 출판사의 마진 극대화 전략입니다. IT 독자들은 자신의 커리어 성장과 문제 해결을 위해 도서를 구매하므로 가격 저항감이 대단히 낮습니다." },
+  { type: "chart", title: "판매지수와 리뷰 수의 상관관계", image: "07_sales_index_vs_reviews.png", desc: "판매지수와 리뷰 수의 상관관계 산점도입니다.\n피어슨 상관계수 0.361로 뚜렷하고 유의미한 양의 상관관계를 보입니다.", notes: "분석을 통해 도출한 피어슨 상관계수(R)는 0.3611로, 통계적으로 매우 유의미한 양의 상관관계가 검출되었습니다. 초기 리뷰를 인위적으로 누적시켜 놓으면, 판매지수가 오르고, 오른 판매지수가 다시 자발적 독자 리뷰를 생산해내는 '자기 강화적 피드백 루프'가 형성됩니다." },
+  { type: "split", title: "구매 설득을 돕는 평판의 선순환 메커니즘", left: "상관계수 0.36은 판매와 평판이 서로의 성장 동력이 되는 공생 관계임을 입증합니다. 초기 1개월 내에 리뷰수 30개 돌파 목표를 달성해야 장기 흥행 궤도에 진입합니다.", items: [ { label: "상관계수 수치", val: "0.3611 (양의 상관성)" }, { label: "흥행 모멘텀 골든타임", val: "출간 후 초기 4주 이내" }, { label: "핵심 마케팅 지표", val: "서평단 유치를 통한 초기 평점 방어" } ], notes: "상관 분석이 말해주는 흥행 선순환 마케팅 실무 적용 가이드입니다. 책의 생애 주기에서 베스트셀러 진입 여부를 판가름하는 골든타임은 출간 후 초기 4주 이내입니다." },
+  { type: "chart", title: "상위 30개 출판사 도서 발행 점유율", image: "08_top_publishers.png", desc: "도서 발행 점유율 상위 30개 출판사 현황 막대 차트입니다.\n커뮤니케이션북스와 한빛미디어가 독보적인 상위 2강을 점유하고 있습니다.", notes: "분석 결과 1위 커뮤니케이션북스가 179권으로 14.9%, 2위 한빛미디어가 112권으로 9.3%의 높은 점유율을 차지하고 있습니다. 상위 5대 IT 전문 출판사의 신간 공급 점유율이 전체의 약 37.8%에 달합니다." },
+  { type: "cards3", title: "대형 출판사 과점 구조와 틈새 포지셔닝", cards: [ { head: "과점적 공급 생태계", body: "커뮤니케이션북스, 한빛미디어 등 상위 5대 브랜드가 전체 IT 도서 유통망의 37%를 공급합니다." }, { head: "레드오션 경쟁 지양", body: "소형 출판사가 파이썬 입문 등 메이저사의 영역에서 정면 대결하는 것은 무모합니다." }, { head: "틈새 시장 개척", body: "마이크로 니치 기술 도메인을 타겟팅하여 브랜드 정체성을 확보해야 합니다." } ], notes: "출판사 점유율 통계가 알려주는 중소 출판 기획사 생존 전략입니다. 중소 출판사는 정면 대결을 피해 대형사들이 놓치는 틈새 기술 도메인을 선점해야 합니다." },
+  { type: "chart", title: "상위 30개 저자 도서 발행 건수", image: "09_top_authors.png", desc: "도서 발행량이 가장 왕성한 상위 30개 저자 명단 차트입니다.\n서지영 저자와 장문철 저자가 각각 10권으로 선두를 점유합니다.", notes: "공동 1위에 서지영 저자와 장문철 저자가 각각 10권의 방대한 집필 실적을 내세우며 선두를 쥐고 있습니다. IT 출판 도메인에서는 '저자 브랜드 로열티'가 대단히 굳건합니다." },
+  { type: "split", title: "스타 저자 육성 및 파트너십 구축 전략", left: "최다 저작물을 출간한 서지영, 장문철 저자(각 10권) 사례는 IT 출판이 철저히 저자의 브랜드 파워에 종속되는 필진 비즈니스임을 시사합니다.", items: [ { label: "최다 집필 저자 권수", val: "각 10권씩 출간" }, { label: "핵심 구매 요인", val: "저자 명성에 기반한 두터운 신뢰 자산" }, { label: "핵심 액션 아이템", val: "지속적 집필 케어 및 독점 파트너십 계약" } ], notes: "기획팀은 업계에서 필력이 검증된 스타 저자들과 다년 계약 및 차기 기획 로드맵을 함께 설계하는 '장기적 기술 파트너십'을 맺어야 합니다." },
+  { type: "chart", title: "도서 텍스트 TF-IDF 단어 가중치", image: "10_text_keywords.png", desc: "도서 제목과 설명에서 TF-IDF 벡터라이저로 분석한 차트입니다.\nAI, 인공지능, 생성형 키워드가 압도적인 가중치를 점유합니다.", notes: "`ai`, `인공지능`, `생성형` 키워드가 가중치 통합 약 0.1412의 독보적인 지수를 차지하며 1위를 차지했습니다. 이는 생성형 AI의 비즈니스적 응용과 LLM 코딩 활용 자동화 분야로 패러다임이 시프트되었음을 입증합니다." },
+  { type: "cards3", title: "신기술 트렌드 결합 기획 및 검색 노출 강화", cards: [ { head: "AI 패러다임 독점", body: "TF-IDF 분석 결과 'AI', '인공지능', '챗GPT' 등이 기획 의사결정을 독점적으로 견인합니다." }, { head: "융합 도서 기획 가치", body: "'AI 프롬프트를 결합한 코딩 학습' 등 크로스오버 기획을 시도해야 합니다." }, { head: "메타 키워드 SEO 최적화", body: "'실전', '실무', '자동화' 등 고가중치 단어를 의도적으로 매핑해 노출을 올려야 합니다." } ], notes: "TF-IDF 텍스트 키워드 가중치 분석에 근거한 검색 유입 최적화(SEO) 및 기획 방향성입니다. 출판 기획 부서는 '실무 자동화', '생성형 AI API' 등 검색 엔진 노출 점수가 높은 타겟 키워드들을 삽입해야 합니다." },
+  // 28. 세션 III 간지
+  { type: "divider", label: "SECTION III", title: "종합 결론 및\n비즈니스 제언", notes: "프레젠테이션의 마지막 대주제인 종합 결론 및 비즈니스 제언 파트입니다. 이제 3대 핵심 액션 플랜을 제시하고자 합니다." },
+  // 29~31: 제언 3종
+  { type: "split", title: "최신 신간 중심의 빠른 교체 주기 대응", left: "신간 발행의 80% 이상이 최근 3개년에 집중되는 현상은 IT 도서의 반감기가 극도로 짧아졌음을 보여줍니다. 기획 속도를 혁신하고 마케팅 집중도를 재배정해야 합니다.", items: [ { label: "애자일 기획", val: "원고 계약부터 인쇄 배포까지 6개월 내 완료" }, { label: "홍보 예산 집중", val: "출간 후 초기 3개월 이내에 마케팅비 80% 소진" }, { label: "개정판 선계약", val: "신기술 릴리즈 일정에 연동한 개정 캘린더 상시화" } ], notes: "첫 번째 비즈니스 액션 플랜은 '애자일 기획 및 예산 집중 정책'입니다. 기획 부서는 6개월 이내에 초고속으로 초판을 밀어내는 민첩성을 확보해야 합니다." },
+  { type: "cards3", title: "킬러 키워드(AI/생성형)의 적절한 활용", cards: [ { head: "크로스 오버 기획", body: "전통적인 프로그래밍 기초서 기획을 지양하고 AI 개발 프로세스와의 크로스 기획을 시도합니다." }, { head: "실무 중심의 가치 지향", body: "단순 이론 나열을 배제하고 실전, 실습, 자동화 등 체감 가능한 가치를 제목에 담습니다." }, { head: "SEO 메타데이터 설계", body: "TF-IDF 가중치가 입증된 고노출 단어를 자연스럽게 삽입해 검색 유입을 극대화합니다." } ], notes: "두 번째 액션 플랜은 'AI 기술 결합 기획 및 검색 노출의 과학화'입니다." },
+  { type: "split", title: "마케팅 채널의 양극화 극복 (Social Proof)", left: "판매와 리뷰의 뚜렷한 양의 상관성(0.36)은 초기 평판이 베스트셀러 등극의 방아쇠가 됨을 시사합니다.", items: [ { label: "초기 타겟 리뷰 수", val: "출간 후 4주 이내 최소 30개 등록" }, { label: "베타리더십 체계", val: "사전 PDF 공유를 통한 대량 서평 예약" }, { label: "상시 리워드 가이드", val: "고품질 리뷰 작성 시 기프티콘 자동 지급" } ], notes: "세 번째 액션 플랜은 '평판 선순환 모멘텀 확보' 전략입니다. 독자 기술 리뷰 30개를 출간 후 한 달 이내에 완성해야 합니다." },
+  // 32. Q&A
+  { type: "cover", title: "Q & A", subtitle: "경청해 주셔서 감사합니다.", meta: "의문 사항이나 보완이 필요한 내용이 있다면 언제든 편하게 질문해 주십시오.", notes: "이것으로 YES24 1,200건의 IT 도서 데이터를 기반으로 수행한 탐색적 데이터 분석 결과 및 비즈니스 의사결정 3대 액션 플랜 브리핑을 모두 마치겠습니다. 경청해 주셔서 대단히 감사합니다." }
+];
+
+// ═══════════════════════════════════════════
+// 슬라이드 렌더링
+// ═══════════════════════════════════════════
+
+slides.forEach((d) => {
+  const slide = pres.addSlide();
+  slide.background = { color: C.BG };
+  slide.addNotes(d.notes || "");
+
+  if (d.type === "cover") {
+    // ── 표지: 오가닉 블롭 + 넓은 여백 + 세리프 타이틀 ──
+    addBlob(slide, 7.5, -1.5, 8, 8);
+    addBlob(slide, -2, 4, 6, 5);
+    slide.addText(d.title, { x: 1.5, y: 1.5, w: 10.3, h: 3.0, fontFace: F_TITLE, fontSize: 44, color: C.TEXT, align: "left", valign: "middle", margin: 0 });
+    slide.addShape(pres.shapes.LINE, { x: 1.5, y: 4.6, w: 3.0, h: 0, line: { color: C.MUTED, width: 0.75 } });
+    slide.addText(d.subtitle, { x: 1.5, y: 4.8, w: 10.3, h: 0.8, fontFace: F_BODY, fontSize: 16, color: C.MUTED, margin: 0 });
+    slide.addText(d.meta, { x: 1.5, y: 5.8, w: 10.3, h: 0.5, fontFace: F_BODY, fontSize: 11, color: C.MUTED, charSpacing: 3, margin: 0 });
+
+  } else if (d.type === "toc") {
+    // ── 목차: 미니멀 리스트 ──
+    addDots(slide);
+    addBlob(slide, 8, 2, 7, 6);
+    slide.addText(d.title, { x: 0.7, y: 0.4, w: 5, h: 0.8, fontFace: F_TITLE, fontSize: 36, color: C.TEXT, margin: 0 });
+    d.sections.forEach((s, si) => {
+      const yt = 2.0 + si * 1.6;
+      // 로마 넘버
+      slide.addText(s.num, { x: 0.7, y: yt, w: 0.8, h: 1.2, fontFace: F_TITLE, fontSize: 24, color: C.MUTED, margin: 0 });
+      // 제목 + 설명
+      slide.addText([
+        { text: s.name, options: { fontFace: F_TITLE, fontSize: 18, color: C.TEXT, bold: true, breakLine: true } },
+        { text: s.desc, options: { fontFace: F_BODY, fontSize: 12, color: C.MUTED } }
+      ], { x: 1.6, y: yt, w: 8, h: 1.2, margin: 0 });
+      // 얇은 구분선
+      if (si < d.sections.length - 1) {
+        slide.addShape(pres.shapes.LINE, { x: 1.6, y: yt + 1.35, w: 8, h: 0, line: { color: C.LINE, width: 0.5 } });
+      }
+    });
+    addFooter(slide, "YES24 IT 도서 데이터 EDA");
+
+  } else if (d.type === "divider") {
+    // ── 간지: 다크 배경 + 여백 ──
+    slide.background = { color: C.DIVIDER };
+    addBlob(slide, 7, -1, 8, 7);
+    slide.addText(d.label, { x: 1.5, y: 2.0, w: 10, h: 0.6, fontFace: F_BODY, fontSize: 13, color: C.MUTED, charSpacing: 6, margin: 0 });
+    slide.addText(d.title, { x: 1.5, y: 2.8, w: 10, h: 2.5, fontFace: F_TITLE, fontSize: 42, color: C.WHITE, margin: 0 });
+
+  } else if (d.type === "cards3") {
+    // ── 3열 카드: 미니멀 카드 + 상단 도트 ──
+    addDots(slide);
+    slide.addText(d.title, { x: 0.7, y: 0.4, w: 12, h: 0.8, fontFace: F_TITLE, fontSize: 28, color: C.TEXT, margin: 0 });
+    d.cards.forEach((c, ci) => {
+      const cx = 0.7 + ci * 4.05;
+      const cy = 1.8;
+      const cw = 3.7;
+      const ch = 4.8;
+      // 미니멀 카드 (얇은 테두리, 그림자 없음)
+      slide.addShape(pres.shapes.RECTANGLE, { x: cx, y: cy, w: cw, h: ch, fill: { color: C.CARD }, line: { color: C.LINE, width: 0.5 } });
+      // 상단 액센트 도트
+      slide.addShape(pres.shapes.OVAL, { x: cx + 0.3, y: cy + 0.35, w: 0.15, h: 0.15, fill: { color: C.TEXT } });
+      // 헤더
+      slide.addText(c.head, { x: cx + 0.3, y: cy + 0.7, w: cw - 0.6, h: 1.0, fontFace: F_TITLE, fontSize: 17, color: C.TEXT, margin: 0 });
+      // 얇은 구분선
+      slide.addShape(pres.shapes.LINE, { x: cx + 0.3, y: cy + 1.8, w: cw - 0.6, h: 0, line: { color: C.LINE, width: 0.5 } });
+      // 바디
+      slide.addText(c.body, { x: cx + 0.3, y: cy + 2.0, w: cw - 0.6, h: 2.5, fontFace: F_BODY, fontSize: 13, color: C.MUTED, valign: "top", margin: 0 });
+    });
+    addFooter(slide, "YES24 IT 도서 데이터 EDA");
+
+  } else if (d.type === "bignum") {
+    // ── 빅 넘버 콜아웃: 거대 숫자 + 넓은 여백 ──
+    addDots(slide);
+    addBlob(slide, 8, 0, 7, 5);
+    slide.addText(d.title, { x: 0.7, y: 0.4, w: 12, h: 0.8, fontFace: F_TITLE, fontSize: 28, color: C.TEXT, margin: 0 });
+    d.nums.forEach((n, ni) => {
+      const nx = 0.7 + ni * 4.05;
+      const ny = 1.8;
+      // 미니멀 카드
+      slide.addShape(pres.shapes.RECTANGLE, { x: nx, y: ny, w: 3.7, h: 2.8, fill: { color: C.CARD }, line: { color: C.LINE, width: 0.5 } });
+      // 거대 숫자
+      slide.addText(n.val, { x: nx, y: ny + 0.3, w: 3.7, h: 1.5, fontFace: F_TITLE, fontSize: 56, color: C.TEXT, align: "center", valign: "middle", margin: 0 });
+      // 라벨
+      slide.addText(n.label, { x: nx, y: ny + 1.9, w: 3.7, h: 0.6, fontFace: F_BODY, fontSize: 12, color: C.MUTED, align: "center", charSpacing: 3, margin: 0 });
+    });
+    // 하단 설명
+    slide.addText(d.body, { x: 0.7, y: 5.2, w: 11.9, h: 1.0, fontFace: F_BODY, fontSize: 14, color: C.MUTED, margin: 0 });
+    addFooter(slide, "YES24 IT 도서 데이터 EDA");
+
+  } else if (d.type === "chart") {
+    // ── 차트: 좌측 설명 + 우측 이미지 ──
+    addDots(slide);
+    slide.addText(d.title, { x: 0.7, y: 0.4, w: 12, h: 0.8, fontFace: F_TITLE, fontSize: 26, color: C.TEXT, margin: 0 });
+    // 좌측 설명 카드
+    slide.addShape(pres.shapes.RECTANGLE, { x: 0.7, y: 1.6, w: 5.6, h: 4.8, fill: { color: C.CARD }, line: { color: C.LINE, width: 0.5 } });
+    slide.addShape(pres.shapes.OVAL, { x: 1.0, y: 1.95, w: 0.15, h: 0.15, fill: { color: C.TEXT } });
+    slide.addText("분석 결과 요약", { x: 1.3, y: 1.8, w: 4.5, h: 0.5, fontFace: F_TITLE, fontSize: 15, color: C.TEXT, margin: 0 });
+    slide.addShape(pres.shapes.LINE, { x: 1.0, y: 2.5, w: 4.8, h: 0, line: { color: C.LINE, width: 0.5 } });
+    slide.addText(d.desc, { x: 1.0, y: 2.7, w: 4.8, h: 3.3, fontFace: F_BODY, fontSize: 14, color: C.MUTED, valign: "top", margin: 0 });
+    // 우측 이미지
+    slide.addShape(pres.shapes.RECTANGLE, { x: 6.7, y: 1.6, w: 5.8, h: 4.8, fill: { color: C.CARD }, line: { color: C.LINE, width: 0.5 } });
+    slide.addImage({ path: IMG(d.image), x: 6.85, y: 1.75, w: 5.5, h: 4.5 });
+    addFooter(slide, "YES24 IT 도서 데이터 EDA");
+
+  } else if (d.type === "split") {
+    // ── 스플릿: 좌측 설명 + 우측 지표 카드 ──
+    addDots(slide);
+    slide.addText(d.title, { x: 0.7, y: 0.4, w: 12, h: 0.8, fontFace: F_TITLE, fontSize: 26, color: C.TEXT, margin: 0 });
+    // 좌측 설명 카드
+    slide.addShape(pres.shapes.RECTANGLE, { x: 0.7, y: 1.6, w: 5.6, h: 4.8, fill: { color: C.CARD }, line: { color: C.LINE, width: 0.5 } });
+    slide.addText(d.left, { x: 1.0, y: 1.9, w: 5.0, h: 4.2, fontFace: F_BODY, fontSize: 15, color: C.TEXT, valign: "top", margin: 0 });
+    // 우측 수직 카드 3개
+    d.items.forEach((it, ii) => {
+      const iy = 1.6 + ii * 1.65;
+      // 미니멀 카드
+      slide.addShape(pres.shapes.RECTANGLE, { x: 6.7, y: iy, w: 5.8, h: 1.4, fill: { color: C.CARD }, line: { color: C.LINE, width: 0.5 } });
+      // 좌측 도트 액센트
+      slide.addShape(pres.shapes.OVAL, { x: 6.95, y: iy + 0.25, w: 0.12, h: 0.12, fill: { color: C.TEXT } });
+      // 라벨
+      slide.addText(it.label, { x: 7.25, y: iy + 0.15, w: 4.8, h: 0.45, fontFace: F_BODY, fontSize: 11, color: C.MUTED, charSpacing: 2, margin: 0 });
+      // 값
+      slide.addText(it.val, { x: 7.25, y: iy + 0.6, w: 4.8, h: 0.6, fontFace: F_TITLE, fontSize: 18, color: C.TEXT, margin: 0 });
+    });
+    addFooter(slide, "YES24 IT 도서 데이터 EDA");
+  }
+});
+
+// ── 파일 저장 ──
+const outputPath = path.resolve(__dirname, "..", "docs", "eda_report_nordic.pptx");
+pres.writeFile({ fileName: outputPath }).then(() => {
+  console.log("★ [SUCCESS] 노르딕 미니멀리즘 PPTX 빌드 완료: " + outputPath);
+}).catch((err) => {
+  console.error("❌ [ERROR] PPTX 빌드 실패:", err);
+  process.exit(1);
+});
