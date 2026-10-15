@@ -19,9 +19,21 @@
 
 ```plaintext
 cli-practice/
+├── .agents/                          # 🤖 에이전트 하네스 인프라 (Rules, Skills, Workflows, Hooks, Agents)
+│   ├── rules/data-pipeline-rules.md  # 전주기 파이프라인 품질 룰
+│   ├── skills/site-scraping-analysis-dashboard/ # 엔드투엔드 파이프라인 스킬
+│   ├── workflows/analytics_pipeline.py # 4-Phase 체크포인트 오케스트레이터
+│   ├── hooks.json                    # 환경/품질 안전 가드레일 훅
+│   └── agents/                       # 웹 스크래퍼/EDA 분석가/대시보드 엔지니어 서브에이전트
+│
 ├── .github/
 │   └── workflows/
 │       └── deploy-pages.yml          # GitHub Pages 자동 배포 CI/CD 파이프라인
+│
+├── harness/                          # ⚙️ [프로젝트 3] 범용 하네스 테스트 및 아티팩트 보관소
+│   ├── docs/                         # 하네스 구현 계획서 및 상세 워크스루
+│   ├── src/test_harness.py           # 하네스 자동화 통합 테스트 스위트
+│   └── ...
 │
 ├── kyobobooks/                       # 📘 [프로젝트 1] 교보문고 IT 베스트셀러 프로젝트
 │   ├── dashboard.html                # Chart.js 기반 인터랙티브 독립 실행형 웹앱 대시보드
@@ -74,6 +86,16 @@ cli-practice/
   - **프레젠테이션 슬라이드**: Marp 및 PptxGenJS 기반의 네오브루탈(Neo-Brutalism), 노르딕(Nordic) 스타일 PPTX 및 HTML 발표 자료.
   - **엑셀 대시보드 (`yes24_dashboard.xlsx`)**: 비즈니스 보고용 스프레드시트 대시보드.
 
+### 3. 범용 데이터 분석 자동화 하네스 시스템 (`harness/` & `.agents/`)
+- **개요**: 도서뿐만 아니라 어떤 웹사이트라도 네트워크 API 분석 ➔ 스크래핑 ➔ 스키마 정규화 ➔ 심층 EDA(11종 시각화) ➔ 마크다운 종합 리포트 ➔ Chart.js 독립 실행형 웹앱 대시보드 구축까지 원스톱으로 처리하는 엔드투엔드 에이전트 인프라.
+- **5대 핵심 컴포넌트**:
+  - **Rules (`.agents/rules/data-pipeline-rules.md`)**: 전주기 파이프라인 품질 및 경로/환경 표준 가이드.
+  - **Skills (`.agents/skills/site-scraping-analysis-dashboard/`)**: 10개 범용 표준 필드 매퍼(`normalizer.py`), Matplotlib/Seaborn 동적 레이블링 EDA 템플릿, 반응형 웹앱 대시보드 자동 빌더.
+  - **Workflows (`.agents/workflows/analytics_pipeline.py`)**: 4-Phase 체크포인트 멱등성 및 원클릭 복구 오케스트레이터.
+  - **Hooks (`.agents/hooks.json`)**: 루트 `.venv` 환경 강제 및 산출물 파일 크기/품질 검증 가드레일.
+  - **Agents (`.agents/agents/`)**: 스크래퍼(`web-scraper`), EDA 분석가(`eda-analyst`), 대시보드 엔지니어(`dashboard-engineer`) 서브에이전트 군.
+- **자동화 검증**: `harness/src/test_harness.py`를 통해 정규화, 동적 시각화, 워크플로우 체크포인트, 훅 가드레일 전체 단위/통합 테스트 100% 통과.
+
 ---
 
 ## 💻 로컬 환경 설정 및 실행 가이드
@@ -91,7 +113,13 @@ CSV 데이터를 재가공하고 TF-IDF 키워드를 새로 추출하여 대시�
 uv run python kyobobooks/src/build_dashboard.py
 ```
 
-### 3. 로컬 브라우저에서 바로 열기
+### 3. 하네스 자동화 테스트 실행
+구축된 하네스 모듈의 정합성 및 통합 파이프라인을 일괄 검증합니다:
+```bash
+uv run python harness/src/test_harness.py
+```
+
+### 4. 로컬 브라우저에서 바로 열기
 웹 서버 설치 없이 로컬 파일 탐색기에서 파일을 더블 클릭하거나 CLI로 바로 열 수 있습니다:
 ```bash
 open kyobobooks/dashboard.html
@@ -106,3 +134,5 @@ open index.html
 - **🐙 GitHub 리포지토리**: [https://github.com/Icehodduk/cli-practice](https://github.com/Icehodduk/cli-practice)
 - **📑 교보문고 심층 EDA 분석 보고서**: [kyobobooks/docs/eda_report.md](kyobobooks/docs/eda_report.md)
 - **📋 대시보드 구현 워크스루**: [kyobobooks/docs/walkthrough.md](kyobobooks/docs/walkthrough.md)
+- **⚙️ 범용 하네스 아키텍처 상세 워크스루**: [harness/docs/walkthrough.md](harness/docs/walkthrough.md)
+- **📝 범용 하네스 상세 구현 계획서**: [harness/docs/implementation_plan.md](harness/docs/implementation_plan.md)
