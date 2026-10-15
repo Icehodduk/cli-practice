@@ -87,3 +87,4 @@ yes24/images
 !.agents/hooks.json
 !.agents/hooks/
 !.agents/hooks/**
+.agents/**/__pycache__/
