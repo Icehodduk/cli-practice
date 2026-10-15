@@ -121,7 +121,7 @@ class UniversalEDAEngine:
             fig, ax = plt.subplots(figsize=(10, 6))
             ax.barh(top_cats.index.astype(str), top_cats.values, color='#2980b9', edgecolor='white')
             ax.set_title(f'{cat_col} 상위 15개 항목 빈도 현황', fontsize=14, fontweight='bold', pad=12)
-            ax.set_xlabel('도서/항목 수')
+            ax.set_xlabel('항목 수 (빈도)')
             ax.grid(True, linestyle='--', alpha=0.5, axis='x')
             img_path = f"{self.image_dir}/{chart_idx:02d}_{cat_col}_top15.png"
             plt.tight_layout()
