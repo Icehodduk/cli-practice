@@ -1,0 +1,26 @@
+{
+  "name": "analytics_pipeline",
+  "description": "임의의 웹사이트 크롤링부터 심층 EDA, 마크다운 리포트, Chart.js 독립형 웹앱 대시보드 구축까지 전 과정을 조율하는 4-Phase 오케스트레이션 워크플로우입니다.",
+  "entry": "analytics_pipeline.py",
+  "argsSchema": {
+    "type": "object",
+    "properties": {
+      "project": {
+        "type": "string",
+        "description": "생성할 프로젝트 디렉터리 이름 (예: my_project)",
+        "default": "sample_project"
+      },
+      "url": {
+        "type": "string",
+        "description": "크롤링 대상 웹사이트 URL",
+        "default": ""
+      },
+      "force": {
+        "type": "boolean",
+        "description": "기존 체크포인트를 무시하고 전체 단계를 강제 재실행할지 여부",
+        "default": false
+      }
+    },
+    "required": ["project"]
+  }
+}

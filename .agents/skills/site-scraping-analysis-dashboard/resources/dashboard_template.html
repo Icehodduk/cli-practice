@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js v4 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .card-shadow {
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+    }
+    .card-hover:hover {
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      transition: all 0.2s ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-sm">
+          📊
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">{{TITLE}}</h1>
+          <p class="text-xs text-slate-500 font-medium">{{SUBTITLE}} · Standalone Edition</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button id="btnExportCSV" class="inline-flex items-center px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition">
+          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          CSV 내보내기
+        </button>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+          Chart.js Engine
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- KPI Summary Grid (4 Cards) -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow card-hover flex flex-col justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">조회 데이터 건수</span>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span id="kpiTotalCount" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</span>
+          <span id="kpiTotalRatio" class="text-xs font-medium text-slate-400">100%</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow card-hover flex flex-col justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">대표 수치 평균</span>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span id="kpiAvgVal" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</span>
+          <span id="kpiMedianVal" class="text-xs font-medium text-slate-500">중앙값: 0</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow card-hover flex flex-col justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">최상위 카테고리 비중</span>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span id="kpiTopCatRate" class="text-2xl font-extrabold text-slate-900 tracking-tight">0%</span>
+          <span id="kpiTopCatName" class="text-xs font-medium text-slate-500">-</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow card-hover flex flex-col justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">핵심 마이닝 키워드</span>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span id="kpiTopKeyword" class="text-2xl font-extrabold text-blue-600 tracking-tight">-</span>
+          <span id="kpiKeywordScore" class="text-xs font-medium text-slate-500">TF-IDF</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter Control Bar -->
+    <section class="bg-white rounded-xl p-4 border border-slate-200 card-shadow">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="relative flex-1 min-w-[240px]">
+          <input type="text" id="filterSearch" placeholder="실시간 키워드 검색..." class="w-full pl-4 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <select id="filterCategory" class="px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-700">
+            <option value="ALL">카테고리 전체</option>
+          </select>
+          <select id="filterRange" class="px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-700">
+            <option value="ALL">수치 구간 전체</option>
+          </select>
+          <button id="btnResetFilter" class="px-3.5 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+            초기화
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 Charts Grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+        <h2 class="text-base font-bold text-slate-900 mb-2">1. 주요 수치 구간별 분포 (Bar)</h2>
+        <div class="h-64 relative"><canvas id="chart1"></canvas></div>
+      </div>
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+        <h2 class="text-base font-bold text-slate-900 mb-2">2. 상위 카테고리별 점유율 (Doughnut)</h2>
+        <div class="h-64 relative"><canvas id="chart2"></canvas></div>
+      </div>
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+        <h2 class="text-base font-bold text-slate-900 mb-2">3. 시계열/순차 추이 (Line)</h2>
+        <div class="h-64 relative"><canvas id="chart3"></canvas></div>
+      </div>
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+        <h2 class="text-base font-bold text-slate-900 mb-2">4. 카테고리별 평균 수치 비교 (Horizontal Bar)</h2>
+        <div class="h-64 relative"><canvas id="chart4"></canvas></div>
+      </div>
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+        <h2 class="text-base font-bold text-slate-900 mb-2">5. 다변량 산점도 상관관계 (Scatter)</h2>
+        <div class="h-64 relative"><canvas id="chart5"></canvas></div>
+      </div>
+      <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow">
+        <h2 class="text-base font-bold text-slate-900 mb-2">6. 텍스트 마이닝 상위 키워드 (Horizontal Bar)</h2>
+        <div class="h-64 relative"><canvas id="chart6"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Detailed Table -->
+    <section class="bg-white rounded-xl border border-slate-200 card-shadow overflow-hidden">
+      <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+        <h2 class="text-base font-bold text-slate-900">상세 데이터 내역</h2>
+        <div class="text-xs text-slate-500" id="tableInfo">0건 표시 중</div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+          <thead class="bg-slate-50 text-slate-600 text-xs font-semibold" id="tableHead"></thead>
+          <tbody id="tableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+        </table>
+      </div>
+      <div class="p-4 border-t border-slate-200 flex justify-end space-x-1" id="paginationControls"></div>
+    </section>
+
+  </main>
+
+  <footer class="mt-12 py-6 bg-white border-t border-slate-200 text-center text-xs text-slate-400">
+    Antigravity E2E Data Pipeline Engine · Powered by Chart.js & Tailwind CSS
+  </footer>
+
+  <script>
+    // INLINE_DATA_INJECTION_POINT
+    window.APP_DATA = {{INLINE_JSON}};
+
+    const state = {
+      items: window.APP_DATA.items || [],
+      filtered: window.APP_DATA.items || [],
+      metadata: window.APP_DATA.metadata || {},
+      page: 1,
+      pageSize: 20,
+      charts: {}
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initFilters();
+      renderAll();
+    });
+
+    function initFilters() {
+      const catSelect = document.getElementById('filterCategory');
+      (state.metadata.categories || []).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        catSelect.appendChild(opt);
+      });
+
+      document.getElementById('filterSearch').addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase().trim();
+        state.filtered = state.items.filter(d => JSON.stringify(d).toLowerCase().includes(q));
+        state.page = 1;
+        renderAll();
+      });
+
+      catSelect.addEventListener('change', (e) => {
+        const c = e.target.value;
+        const key = state.metadata.categoryKey;
+        state.filtered = c === 'ALL' ? state.items : state.items.filter(d => d[key] === c);
+        state.page = 1;
+        renderAll();
+      });
+
+      document.getElementById('btnResetFilter').addEventListener('click', () => {
+        document.getElementById('filterSearch').value = '';
+        catSelect.value = 'ALL';
+        state.filtered = state.items;
+        state.page = 1;
+        renderAll();
+      });
+
+      document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+    }
+
+    function renderAll() {
+      updateKPIs();
+      renderCharts();
+      renderTable();
+    }
+
+    function updateKPIs() {
+      const count = state.filtered.length;
+      document.getElementById('kpiTotalCount').textContent = count.toLocaleString();
+      document.getElementById('kpiTotalRatio').textContent = `${((count / (state.items.length || 1))*100).toFixed(1)}%`;
+
+      const numKey = state.metadata.numericKey;
+      if (numKey && count > 0) {
+        const nums = state.filtered.map(d => Number(d[numKey]) || 0).sort((a,b)=>a-b);
+        const avg = Math.round(nums.reduce((a,b)=>a+b, 0) / count);
+        const med = nums[Math.floor(count/2)];
+        document.getElementById('kpiAvgVal').textContent = avg.toLocaleString();
+        document.getElementById('kpiMedianVal').textContent = `중앙값: ${med.toLocaleString()}`;
+      }
+
+      if (state.metadata.topKeyword) {
+        document.getElementById('kpiTopKeyword').textContent = state.metadata.topKeyword;
+        document.getElementById('kpiKeywordScore').textContent = `점수: ${state.metadata.topKeywordScore || 0}`;
+      }
+    }
+
+    function renderCharts() {
+      const numKey = state.metadata.numericKey;
+      const catKey = state.metadata.categoryKey;
+
+      // Chart 1: Bar
+      destroyChart('c1');
+      const ctx1 = document.getElementById('chart1').getContext('2d');
+      state.charts.c1 = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: (state.metadata.rangeLabels || ['구간1', '구간2', '구간3', '구간4']),
+          datasets: [{ label: '건수', data: state.metadata.rangeCounts || [10, 20, 15, 5], backgroundColor: '#3b82f6' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Chart 2: Doughnut
+      destroyChart('c2');
+      const ctx2 = document.getElementById('chart2').getContext('2d');
+      const catCounts = {};
+      state.filtered.forEach(d => { if(d[catKey]) catCounts[d[catKey]] = (catCounts[d[catKey]] || 0) + 1; });
+      const sortedCats = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0, 6);
+      state.charts.c2 = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: sortedCats.map(d=>d[0]),
+          datasets: [{ data: sortedCats.map(d=>d[1]), backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#10b981', '#f59e0b'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Chart 3: Line
+      destroyChart('c3');
+      const ctx3 = document.getElementById('chart3').getContext('2d');
+      state.charts.c3 = new Chart(ctx3, {
+        type: 'line',
+        data: {
+          labels: state.metadata.timelineLabels || ['1', '2', '3', '4', '5'],
+          datasets: [{ label: '추이', data: state.metadata.timelineValues || [5, 12, 18, 25, 30], borderColor: '#10b981', fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Chart 4: Horizontal Bar
+      destroyChart('c4');
+      const ctx4 = document.getElementById('chart4').getContext('2d');
+      state.charts.c4 = new Chart(ctx4, {
+        type: 'bar',
+        data: {
+          labels: sortedCats.slice(0, 5).map(d=>d[0]),
+          datasets: [{ label: '비교', data: sortedCats.slice(0, 5).map(d=>d[1]), backgroundColor: '#f59e0b', indexAxis: 'y' }]
+        },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+      });
+
+      // Chart 5: Scatter (Sampled max 1,000)
+      destroyChart('c5');
+      const ctx5 = document.getElementById('chart5').getContext('2d');
+      const sample = state.filtered.slice(0, 1000).map((d, i) => ({ x: i+1, y: Number(d[numKey]) || 0 }));
+      state.charts.c5 = new Chart(ctx5, {
+        type: 'scatter',
+        data: { datasets: [{ label: '표본 분포', data: sample, backgroundColor: 'rgba(239, 68, 68, 0.6)' }] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Chart 6: Keywords
+      destroyChart('c6');
+      const ctx6 = document.getElementById('chart6').getContext('2d');
+      const kws = (state.metadata.keywords || []).slice(0, 10);
+      state.charts.c6 = new Chart(ctx6, {
+        type: 'bar',
+        data: {
+          labels: kws.map(d=>d.name),
+          datasets: [{ label: 'TF-IDF', data: kws.map(d=>d.score), backgroundColor: '#8b5cf6', indexAxis: 'y' }]
+        },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function destroyChart(key) {
+      if (state.charts[key]) state.charts[key].destroy();
+    }
+
+    function renderTable() {
+      const cols = state.metadata.displayColumns || Object.keys(state.items[0] || {}).slice(0, 6);
+      const thead = document.getElementById('tableHead');
+      thead.innerHTML = `<tr>${cols.map(c => `<th class="py-3 px-4">${c}</th>`).join('')}</tr>`;
+
+      const total = state.filtered.length;
+      const start = (state.page - 1) * state.pageSize;
+      const end = Math.min(start + state.pageSize, total);
+      const pageItems = state.filtered.slice(start, end);
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = pageItems.map(item => `
+        <tr class="hover:bg-slate-50">
+          ${cols.map(c => `<td class="py-3 px-4">${item[c] !== undefined ? item[c] : ''}</td>`).join('')}
+        </tr>
+      `).join('');
+
+      document.getElementById('tableInfo').textContent = `전체 ${total.toLocaleString()}건 중 ${start + 1} - ${end}건 표시`;
+    }
+
+    function exportCSV() {
+      if (!state.filtered.length) return alert('내보낼 데이터가 없습니다.');
+      const cols = Object.keys(state.filtered[0]);
+      const rows = state.filtered.map(d => cols.map(c => `"${String(d[c]||'').replace(/"/g, '""')}"`).join(','));
+      const csv = '\uFEFF' + [cols.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `대시보드_데이터_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+  </script>
+</body>
+</html>

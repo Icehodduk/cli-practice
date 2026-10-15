@@ -80,3 +80,10 @@ yes24/images
 !.agents/skills/marp-slide/**
 !.agents/skills/data-pipeline-framework/
 !.agents/skills/data-pipeline-framework/**
+!.agents/skills/site-scraping-analysis-dashboard/
+!.agents/skills/site-scraping-analysis-dashboard/**
+!.agents/workflows/
+!.agents/workflows/**
+!.agents/hooks.json
+!.agents/hooks/
+!.agents/hooks/**

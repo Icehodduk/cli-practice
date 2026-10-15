@@ -1,0 +1,35 @@
+{
+  "pipeline-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .agents/hooks/scripts/env_guard.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .agents/hooks/scripts/post_validator.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 .agents/hooks/scripts/stop_guard.py",
+        "timeout": 10
+      }
+    ]
+  }
+}
